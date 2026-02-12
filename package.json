@@ -1,0 +1,34 @@
+{
+  "name": "devtinder",
+  "version": "1.0.0",
+  "description": "This is the tinder like application backend for the developers over the world",
+  "keywords": [
+    "Javascript",
+    "NodeJs"
+  ],
+  "license": "ISC",
+  "author": "Nikhil Ranjan Kumar",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.1.6",
+    "validator": "^13.15.26"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.3",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.8.1"
+  }
+}
