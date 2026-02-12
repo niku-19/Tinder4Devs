@@ -1,10 +1,8 @@
-import { User } from "../models/user.schema.js";
-import { generateJsonWebToken } from "../utils/jwt.utils.js";
+import { User } from '../models/user.schema.js';
 import {
   validateRegisterUser,
   validateSignInUser,
-} from "../utils/user.util.js";
-import bcrypt from "bcrypt";
+} from '../utils/user.util.js';
 
 export const signUp = async (request, response) => {
   try {
@@ -17,13 +15,13 @@ export const signUp = async (request, response) => {
     await newUser.save();
 
     response.status(201).json({
-      message: "User signed up successfully",
+      message: 'User signed up successfully',
       user: newUser?._id,
     });
   } catch (error) {
-    console.error("Error in signUp controller:", error);
+    console.error('Error in signUp controller:', error);
     response.status(500).json({
-      message: "An error occurred during sign-up. Please try again later.",
+      message: 'An error occurred during sign-up. Please try again later.',
       error: error.message,
     });
   }
@@ -39,37 +37,37 @@ export const signIn = async (request, response) => {
 
     if (!user) {
       return response.status(404).json({
-        message: "User not found with the provided email",
+        message: 'User not found with the provided email',
       });
     }
 
-    //check if the password is correct or not.
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    //check if the password is correct or not. using the verifyPassword method we created in the user schema.
+    const isPasswordMatch = await user.verifyPassword(password);
 
     if (!isPasswordMatch) {
       return response.status(401).json({
-        message: "Invalid password",
+        message: 'Invalid password',
       });
     }
 
     // here we will call create a JWT token function
-    const token = generateJsonWebToken({ _id: user._id });
+    const token = user.jwt();
 
     //we will create a cookies
-    response.cookie("token", token, {
+    response.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
     });
 
     response.status(200).json({
-      message: "User signed in successfully",
+      message: 'User signed in successfully',
       user: user._id,
     });
   } catch (error) {
-    console.error("Error in signIn controller:", error);
+    console.error('Error in signIn controller:', error);
     response.status(500).json({
-      message: "An error occurred during sign-in. Please try again later.",
+      message: 'An error occurred during sign-in. Please try again later.',
       error: error.message,
     });
   }
@@ -83,19 +81,19 @@ export const users = async (request, response) => {
     //check if users are found
     if (!users || users.length === 0) {
       return response.status(404).json({
-        message: "No users found",
+        message: 'No users found',
       });
     }
 
     response.status(200).json({
-      message: "Users fetched successfully",
+      message: 'Users fetched successfully',
       users,
     });
   } catch (error) {
-    console.error("Error in users controller:", error);
+    console.error('Error in users controller:', error);
     response.status(500).json({
       message:
-        "An error occurred while fetching users. Please try again later.",
+        'An error occurred while fetching users. Please try again later.',
       error: error.message,
     });
   }
@@ -112,19 +110,19 @@ export const userById = async (request, response) => {
     //check if user is found
     if (!user) {
       return response.status(404).json({
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     response.status(200).json({
-      message: "User fetched successfully",
+      message: 'User fetched successfully',
       user,
     });
   } catch (error) {
-    console.error("Error in userById controller:", error);
+    console.error('Error in userById controller:', error);
     response.status(500).json({
       message:
-        "An error occurred while fetching user details. Please try again later.",
+        'An error occurred while fetching user details. Please try again later.',
       error: error.message,
     });
   }
@@ -136,18 +134,18 @@ export const userByEmail = async (request, response) => {
     const user = await User.findOne({ email });
     if (!user) {
       return response.status(404).json({
-        message: "User not found",
+        message: 'User not found',
       });
     }
     response.status(200).json({
-      message: "User fetched successfully",
+      message: 'User fetched successfully',
       user,
     });
   } catch (error) {
-    console.error("Error in userByEmail controller:", error);
+    console.error('Error in userByEmail controller:', error);
     res.status(500).json({
       message:
-        "An error occurred while fetching user details. Please try again later.",
+        'An error occurred while fetching user details. Please try again later.',
       error: error.message,
     });
   }
@@ -163,26 +161,26 @@ export const deleteUser = async (request, response) => {
 
     const deletedUser = await User.findByIdAndUpdate(
       userId,
-      { statusDeleted: "DELETED" },
-      { new: true, timestamps: true },
+      { statusDeleted: 'DELETED' },
+      { new: true, timestamps: true }
     );
 
     //check if user is found and updated
     if (!deletedUser) {
       return response.status(404).json({
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     response.status(200).json({
-      message: "User deleted successfully",
+      message: 'User deleted successfully',
       user: deletedUser,
     });
   } catch (error) {
-    console.error("Error in deleteUser controller:", error);
+    console.error('Error in deleteUser controller:', error);
     response.status(500).json({
       message:
-        "An error occurred while deleting the user. Please try again later.",
+        'An error occurred while deleting the user. Please try again later.',
       error: error.message,
     });
   }
@@ -196,7 +194,7 @@ export const updateUser = async (request, response) => {
     //check if update data is provided
     if (!updateData || Object.keys(updateData).length === 0) {
       return response.status(400).json({
-        message: "No update data provided",
+        message: 'No update data provided',
       });
     }
 
@@ -209,19 +207,19 @@ export const updateUser = async (request, response) => {
     //check if user is found and updated
     if (!updatedUser) {
       return response.status(404).json({
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     response.status(200).json({
-      message: "User updated successfully",
+      message: 'User updated successfully',
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Error in updateUser controller:", error);
+    console.error('Error in updateUser controller:', error);
     response.status(500).json({
       message:
-        "An error occurred while updating the user. Please try again later.",
+        'An error occurred while updating the user. Please try again later.',
       error: error.message,
     });
   }

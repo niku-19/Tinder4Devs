@@ -1,8 +1,8 @@
-import "dotenv/config";
-import express from "express";
-import { connectDB } from "./config/database.init.js";
-import UserRoutes from "./routes/user.route.js";
-import cookieParser from "cookie-parser";
+import 'dotenv/config';
+import express from 'express';
+import { connectDB } from './config/database.init.js';
+import UserRoutes from './routes/user.route.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Registering routes
-app.use("/v1/api", UserRoutes);
+app.use('/v1/api', UserRoutes);
 
 (async () => {
   try {
@@ -23,7 +23,7 @@ app.use("/v1/api", UserRoutes);
       console.log(`Server is running on port ${PORT}...`);
     });
   } catch (error) {
-    console.error("Error initializing the server...");
+    console.error('Error initializing the server...');
     process.exit(1);
   }
 })();
