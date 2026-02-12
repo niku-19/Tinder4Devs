@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
-import { User } from "../models/user.schema.js";
-import { environmentConfigValue } from "../config/environmentConfig.js";
+import jwt from 'jsonwebtoken';
+import { User } from '../models/user.schema.js';
+import { environmentConfigValue } from '../config/environmentConfig.js';
 
 export const checkAuth = async (request, response, next) => {
   try {
@@ -8,7 +8,7 @@ export const checkAuth = async (request, response, next) => {
 
     if (!token) {
       throw new Error(
-        "No Token provided! Please log in to access this resource.",
+        'No Token provided! Please log in to access this resource.'
       );
     }
 
@@ -23,22 +23,22 @@ export const checkAuth = async (request, response, next) => {
 
     //we will find the user in the database and check if the user exists
     if (!userId) {
-      throw new Error("Invalid token! User not found.");
+      throw new Error('Invalid token! User not found.');
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-      throw new Error("User not found in database.");
+      throw new Error('User not found in database.');
     }
 
     // Attach user object to request for further use in routes
     request.user = user;
     next();
   } catch (error) {
-    console.error("Error in checkAuth middleware:", error);
+    console.error('Error in checkAuth middleware:', error);
     response.status(401).json({
-      message: "Unauthorized! Please log in to access this resource.",
+      message: 'Unauthorized! Please log in to access this resource.',
       error: error.message,
     });
   }

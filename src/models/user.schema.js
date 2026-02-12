@@ -1,7 +1,8 @@
-import mongoose, { set } from "mongoose";
+import mongoose, { set } from 'mongoose';
 const { Schema } = mongoose;
-import bcrypt from "bcrypt";
-import validator from "validator";
+import bcrypt from 'bcrypt';
+import validator from 'validator';
+import { generateJsonWebToken } from '../utils/jwt.utils.js';
 
 const userSchema = new Schema(
   {
@@ -27,7 +28,7 @@ const userSchema = new Schema(
         validator: function (value) {
           return value >= 18 && value <= 100;
         },
-        message: "Age must be between 18 and 100",
+        message: 'Age must be between 18 and 100',
       },
     },
     contactNumber: {
@@ -35,8 +36,8 @@ const userSchema = new Schema(
       required: true,
       unique: true,
       validator(value) {
-        if (!validator.isMobilePhone(value, "any")) {
-          throw new Error("Invalid contact number format");
+        if (!validator.isMobilePhone(value, 'any')) {
+          throw new Error('Invalid contact number format');
         }
       },
     },
@@ -47,7 +48,7 @@ const userSchema = new Schema(
       set: (value) => value.toLowerCase(),
       validator(value) {
         if (!validator.isEmail(value)) {
-          throw new Error("Invalid email format");
+          throw new Error('Invalid email format');
         }
       },
     },
@@ -57,33 +58,33 @@ const userSchema = new Schema(
       validator(value) {
         if (!validator.isStrongPassword(value)) {
           throw new Error(
-            "Password must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and symbols.",
+            'Password must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and symbols.'
           );
         }
       },
     },
     profilePicture: {
       type: String,
-      default: "https://pixabay.com/images/search/profile%20icon/",
+      default: 'https://pixabay.com/images/search/profile%20icon/',
       validator(value) {
         if (!validator.isURL(value)) {
-          throw new Error("Invalid URL format for profile picture");
+          throw new Error('Invalid URL format for profile picture');
         }
       },
     },
     coverPicture: {
       type: String,
-      default: "https://unsplash.com/s/photos/cover-photo",
+      default: 'https://unsplash.com/s/photos/cover-photo',
       validator(value) {
         if (!validator.isURL(value)) {
-          throw new Error("Invalid URL format for cover picture");
+          throw new Error('Invalid URL format for cover picture');
         }
       },
     },
     bio: {
       type: String,
       max: 50,
-      default: "This is default bio from the system",
+      default: 'This is default bio from the system',
       minLength: 10,
       maxLength: 300,
     },
@@ -108,19 +109,19 @@ const userSchema = new Schema(
       required: true,
       validator(value) {
         if (!Array.isArray(value) || value.length === 0) {
-          throw new Error("Skills must be a non-empty array of strings");
+          throw new Error('Skills must be a non-empty array of strings');
         }
 
         if (
           value.some(
-            (skill) => typeof skill !== "string" || skill.trim() === "",
+            (skill) => typeof skill !== 'string' || skill.trim() === ''
           )
         ) {
-          throw new Error("Each skill must be a non-empty string");
+          throw new Error('Each skill must be a non-empty string');
         }
 
         if (value.length > 20) {
-          throw new Error("A maximum of 20 skills can be added");
+          throw new Error('A maximum of 20 skills can be added');
         }
       },
     },
@@ -137,46 +138,78 @@ const userSchema = new Schema(
     },
     collaborationStyle: {
       type: String,
-      enum: ["Remote", "In-Person", "Hybrid"],
+      enum: ['Remote', 'In-Person', 'Hybrid'],
       validator(value) {
-        if (!["Remote", "In-Person", "Hybrid"].includes(value)) {
+        if (!['Remote', 'In-Person', 'Hybrid'].includes(value)) {
           throw new Error(
-            "Collaboration style must be one of: Remote, In-Person, Hybrid",
+            'Collaboration style must be one of: Remote, In-Person, Hybrid'
           );
         }
       },
     },
     statusDeleted: {
       type: String,
-      default: "NEW",
-      enum: ["NEW", "DELETED"],
+      default: 'NEW',
+      enum: ['NEW', 'DELETED'],
       set: (value) => value.toUpperCase(),
       index: true,
       validator(value) {
-        if (!["NEW", "DELETED"].includes(value.toUpperCase())) {
-          throw new Error("Status must be either NEW or DELETED");
+        if (!['NEW', 'DELETED'].includes(value.toUpperCase())) {
+          throw new Error('Status must be either NEW or DELETED');
         }
       },
     },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 userSchema.pre(/^find/, async function () {
-  this.where("statusDeleted").ne("DELETED");
+  this.where('statusDeleted').ne('DELETED');
 });
 
-userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
 
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
   } catch (error) {
-    console.error("Error hashing password:", error);
+    console.error('Error hashing password:', error);
   }
 });
 
-export const User = mongoose.model("User", userSchema);
+userSchema.methods.verifyPassword = async function (passwordGivenByUser) {
+  try {
+    const user = this;
+    const passwordHash = user.password;
+
+    const isPasswordValid = await bcrypt.compare(
+      passwordGivenByUser,
+      passwordHash
+    );
+
+    return isPasswordValid;
+  } catch (error) {
+    console.error('Error verifying password:', error);
+    throw new Error('Error verifying password');
+  }
+};
+
+userSchema.methods.jwt = function () {
+  try {
+    const user = this;
+
+    const payload = { _id: user._id };
+
+    const token = generateJsonWebToken(payload);
+
+    return token;
+  } catch (error) {
+    console.error('Error generating JWT:', error);
+    throw new Error('Error generating JWT');
+  }
+};
+
+export const User = mongoose.model('User', userSchema);
