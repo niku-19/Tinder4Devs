@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/user.schema.js';
 import { environmentConfigValue } from '../config/environmentConfig.js';
+import { Users } from '../models/users.schema.js';
+import { sendResponse } from '../utils/sendResponse.utils.js';
 
 export const checkAuth = async (request, response, next) => {
   try {
-    const token = request.cookies.token;
+    const token = request.cookies.TOKEN;
 
     if (!token) {
       throw new Error(
@@ -26,7 +27,7 @@ export const checkAuth = async (request, response, next) => {
       throw new Error('Invalid token! User not found.');
     }
 
-    const user = await User.findById(userId);
+    const user = await Users.findById(userId);
 
     if (!user) {
       throw new Error('User not found in database.');
@@ -37,9 +38,9 @@ export const checkAuth = async (request, response, next) => {
     next();
   } catch (error) {
     console.error('Error in checkAuth middleware:', error);
-    response.status(401).json({
+    return sendResponse(response, {
+      statusCode: 401,
       message: 'Unauthorized! Please log in to access this resource.',
-      error: error.message,
     });
   }
 };
