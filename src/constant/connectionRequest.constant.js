@@ -1,0 +1,9 @@
+export const VALID_STATUS = ['LIKE', 'PASS', 'REJECTED', 'MATCHED', 'PENDING'];
+export const VALID_CONNECTION_REQUEST_STATUS = ['LIKE', 'PASS'];
+export const MATCHED_OR_REJECTED_STATUS = ['MATCHED', 'REJECTED'];
+export const CONNECTION_STATUS = ['PENDING', 'MATCHED', 'REJECTED'];
+export const MATCHED = 'MATCHED';
+export const REJECTED = 'REJECTED';
+export const PENDING = 'PENDING';
+export const LIKE = 'LIKE';
+export const PASS = 'PASS';

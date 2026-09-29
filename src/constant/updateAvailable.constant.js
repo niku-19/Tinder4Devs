@@ -12,3 +12,5 @@ export const UPDATE_AVAILABLE = [
   'socialLinks',
   'collaborationStyle',
 ];
+
+export const UPDATE_AVAILABLE_FORGOT_PASSWORD = ['oldPassword', 'newPassword'];
