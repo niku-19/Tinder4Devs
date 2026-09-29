@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Health Dashboard</title>
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+      :root {
+        --bg: #07110f;
+        --panel: rgba(15, 29, 26, 0.72);
+        --panel-2: rgba(19, 39, 34, 0.72);
+        --border: rgba(255, 255, 255, 0.08);
+
+        --green: #5df6a5;
+        --green-2: #1dd98b;
+        --cyan: #55e8ff;
+        --yellow: #ffd166;
+        --red: #ff6b81;
+        --text: #f2faf7;
+        --muted: #8da59e;
+
+        --shadow:
+          0 25px 70px rgba(0, 0, 0, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        color: var(--text);
+        font-family: Inter, sans-serif;
+        background:
+          radial-gradient(
+            circle at 15% 10%,
+            rgba(49, 230, 150, 0.13),
+            transparent 30%
+          ),
+          radial-gradient(
+            circle at 85% 20%,
+            rgba(55, 215, 255, 0.09),
+            transparent 30%
+          ),
+          radial-gradient(
+            circle at 50% 100%,
+            rgba(23, 175, 110, 0.08),
+            transparent 35%
+          ),
+          var(--bg);
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.025;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+        background-size: 45px 45px;
+        mask-image: linear-gradient(to bottom, black, transparent);
+      }
+
+      .app {
+        width: min(1450px, 94%);
+        margin: auto;
+        padding: 28px 0 50px;
+      }
+
+      /* NAVBAR */
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+        margin-bottom: 30px;
+
+        background: rgba(11, 25, 22, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'Space Grotesk';
+        font-weight: 700;
+        font-size: 20px;
+      }
+
+      .brand-icon {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        color: #03100b;
+        background: linear-gradient(135deg, var(--green), var(--cyan));
+        box-shadow: 0 0 25px rgba(93, 246, 165, 0.3);
+      }
+
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .live {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--green);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 30px;
+        background: rgba(93, 246, 165, 0.07);
+        border: 1px solid rgba(93, 246, 165, 0.15);
+      }
+
+      .pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 0 rgba(93, 246, 165, 0.6);
+        animation: pulse 1.8s infinite;
+      }
+
+      .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        color: #06120e;
+        background: linear-gradient(135deg, #b7ffe0, #54dfb0);
+      }
+
+      /* HEADER */
+
+      .hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        margin: 40px 5px 28px;
+      }
+
+      .eyebrow {
+        color: var(--green);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      h1 {
+        font-family: 'Space Grotesk';
+        font-size: clamp(32px, 5vw, 58px);
+        letter-spacing: -2px;
+        line-height: 1;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        margin-top: 12px;
+        font-size: 14px;
+      }
+
+      .date {
+        color: var(--muted);
+        font-size: 13px;
+        padding: 11px 15px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      /* GRID */
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 16px;
+      }
+
+      .card {
+        position: relative;
+        overflow: hidden;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent),
+          var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 23px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(20px);
+        transition: 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(93, 246, 165, 0.22);
+        box-shadow:
+          0 25px 70px rgba(0, 0, 0, 0.35),
+          0 0 40px rgba(93, 246, 165, 0.04);
+      }
+
+      .card-title {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+      }
+
+      /* HEALTH SCORE */
+
+      .score-card {
+        grid-column: span 4;
+        grid-row: span 2;
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .score-orbit {
+        width: 210px;
+        height: 210px;
+        margin: 10px auto;
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+
+      .score-orbit::before,
+      .score-orbit::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+      }
+
+      .score-orbit::before {
+        inset: 0;
+        background: conic-gradient(
+          var(--green) 0deg,
+          var(--green-2) 292deg,
+          rgba(255, 255, 255, 0.06) 292deg,
+          rgba(255, 255, 255, 0.06) 360deg
+        );
+        mask: radial-gradient(transparent 67%, black 68%);
+        -webkit-mask: radial-gradient(transparent 67%, black 68%);
+        animation: rotate 8s linear infinite;
+      }
+
+      .score-orbit::after {
+        inset: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .score-number {
+        font-family: 'Space Grotesk';
+        font-size: 64px;
+        font-weight: 700;
+        letter-spacing: -4px;
+      }
+
+      .score-number span {
+        font-size: 18px;
+        color: var(--muted);
+        letter-spacing: 0;
+      }
+
+      .score-status {
+        text-align: center;
+      }
+
+      .score-status strong {
+        color: var(--green);
+        display: block;
+        font-size: 15px;
+        margin-bottom: 5px;
+      }
+
+      .score-status small {
+        color: var(--muted);
+      }
+
+      .score-footer {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .score-footer b {
+        color: var(--green);
+      }
+
+      /* VITAL CARDS */
+
+      .vital {
+        grid-column: span 4;
+        min-height: 185px;
+      }
+
+      .vital-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .vital-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        background: rgba(93, 246, 165, 0.08);
+        color: var(--green);
+        font-size: 18px;
+      }
+
+      .value {
+        font-family: 'Space Grotesk';
+        font-size: 39px;
+        font-weight: 700;
+        margin-top: 24px;
+        letter-spacing: -1px;
+      }
+
+      .unit {
+        color: var(--muted);
+        font-size: 13px;
+        font-family: Inter;
+        font-weight: 400;
+      }
+
+      .trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 9px;
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 11px;
+        background: rgba(93, 246, 165, 0.07);
+        color: var(--green);
+      }
+
+      .trend.warning {
+        color: var(--yellow);
+        background: rgba(255, 209, 102, 0.07);
+      }
+
+      /* GRAPH */
+
+      .activity {
+        grid-column: span 8;
+        min-height: 330px;
+      }
+
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+
+      .legend {
+        display: flex;
+        gap: 15px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .legend span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+      }
+
+      .dot.cyan {
+        background: var(--cyan);
+      }
+
+      .graph {
+        height: 220px;
+        position: relative;
+        display: flex;
+        align-items: end;
+        gap: 14px;
+        padding: 15px 5px 5px;
+      }
+
+      .graph::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 43px,
+          rgba(255, 255, 255, 0.045) 44px
+        );
+      }
+
+      .bar-group {
+        height: 100%;
+        flex: 1;
+        display: flex;
+        align-items: end;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .bar {
+        width: 100%;
+        max-width: 28px;
+        border-radius: 8px 8px 3px 3px;
+        background: linear-gradient(
+          to top,
+          rgba(93, 246, 165, 0.15),
+          var(--green)
+        );
+        box-shadow: 0 0 18px rgba(93, 246, 165, 0.1);
+        animation: rise 0.8s ease backwards;
+      }
+
+      .bar:nth-child(1) {
+        height: 42%;
+      }
+      .bar:nth-child(2) {
+        height: 61%;
+      }
+      .bar:nth-child(3) {
+        height: 48%;
+      }
+      .bar:nth-child(4) {
+        height: 78%;
+      }
+      .bar:nth-child(5) {
+        height: 66%;
+      }
+      .bar:nth-child(6) {
+        height: 88%;
+      }
+      .bar:nth-child(7) {
+        height: 72%;
+      }
+      .bar:nth-child(8) {
+        height: 94%;
+      }
+      .bar:nth-child(9) {
+        height: 75%;
+      }
+      .bar:nth-child(10) {
+        height: 82%;
+      }
+      .bar:nth-child(11) {
+        height: 91%;
+      }
+      .bar:nth-child(12) {
+        height: 68%;
+      }
+
+      /* RINGS */
+
+      .rings-card {
+        grid-column: span 4;
+        min-height: 330px;
+      }
+
+      .rings {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-top: 35px;
+      }
+
+      .ring {
+        width: 82px;
+        height: 82px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        position: relative;
+      }
+
+      .ring::before {
+        content: '';
+        position: absolute;
+        inset: 7px;
+        border-radius: 50%;
+        background: var(--panel-2);
+      }
+
+      .ring span {
+        position: relative;
+        z-index: 1;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .ring.steps {
+        background: conic-gradient(var(--green) 0 78%, #172c27 78%);
+      }
+
+      .ring.calories {
+        background: conic-gradient(var(--yellow) 0 62%, #172c27 62%);
+      }
+
+      .ring.active {
+        background: conic-gradient(var(--cyan) 0 86%, #172c27 86%);
+      }
+
+      .ring-label {
+        text-align: center;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      /* INSIGHT */
+
+      .insight {
+        grid-column: span 8;
+        min-height: 190px;
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        background:
+          radial-gradient(
+            circle at 100% 50%,
+            rgba(85, 232, 255, 0.08),
+            transparent 40%
+          ),
+          var(--panel);
+      }
+
+      .insight-icon {
+        flex: 0 0 70px;
+        height: 70px;
+        border-radius: 20px;
+        display: grid;
+        place-items: center;
+        font-size: 30px;
+        background: linear-gradient(
+          135deg,
+          rgba(93, 246, 165, 0.16),
+          rgba(85, 232, 255, 0.08)
+        );
+        border: 1px solid rgba(93, 246, 165, 0.13);
+      }
+
+      .insight h2 {
+        font-family: 'Space Grotesk';
+        font-size: 22px;
+        margin-bottom: 7px;
+      }
+
+      .insight p {
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 13px;
+        max-width: 600px;
+      }
+
+      .insight button {
+        margin-left: auto;
+        white-space: nowrap;
+        border: 0;
+        color: #06130e;
+        background: var(--green);
+        padding: 12px 17px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .insight button:hover {
+        transform: scale(1.04);
+        box-shadow: 0 0 25px rgba(93, 246, 165, 0.25);
+      }
+
+      /* FOOTER STATUS */
+
+      .system-status {
+        margin-top: 18px;
+        padding: 13px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--muted);
+        font-size: 11px;
+        border-top: 1px solid var(--border);
+      }
+
+      .system-status strong {
+        color: var(--green);
+        font-weight: 600;
+      }
+
+      /* ANIMATIONS */
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(93, 246, 165, 0.6);
+        }
+        70% {
+          box-shadow: 0 0 0 8px rgba(93, 246, 165, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(93, 246, 165, 0);
+        }
+      }
+
+      @keyframes rotate {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes rise {
+        from {
+          transform: scaleY(0);
+          transform-origin: bottom;
+          opacity: 0.2;
+        }
+        to {
+          transform: scaleY(1);
+          transform-origin: bottom;
+          opacity: 1;
+        }
+      }
+
+      /* RESPONSIVE */
+
+      @media (max-width: 1000px) {
+        .score-card,
+        .vital,
+        .activity,
+        .rings-card,
+        .insight {
+          grid-column: span 6;
+        }
+
+        .score-card {
+          grid-row: span 1;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .app {
+          width: 92%;
+          padding-top: 15px;
+        }
+
+        nav {
+          padding: 12px;
+        }
+
+        .live {
+          display: none;
+        }
+
+        .hero {
+          display: block;
+        }
+
+        .date {
+          display: inline-block;
+          margin-top: 18px;
+        }
+
+        .score-card,
+        .vital,
+        .activity,
+        .rings-card,
+        .insight {
+          grid-column: span 12;
+        }
+
+        .graph {
+          gap: 7px;
+        }
+
+        .insight {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .insight button {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="app">
+      <!-- NAVIGATION -->
+      <nav>
+        <div class="brand">
+          <div class="brand-icon">✚</div>
+          <span>Tider<span style="color: #5df6a5">4DevS</span></span>
+        </div>
+
+        <div class="nav-right">
+          <div class="live">
+            <span class="pulse"></span>
+            SYSTEM LIVE
+          </div>
+          <div class="avatar">JD</div>
+        </div>
+      </nav>
+
+      <!-- HEADER -->
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Personal Health Intelligence</div>
+          <h1>Good morning, Jordan.</h1>
+          <p class="subtitle">
+            Your body is looking balanced today. Here's your health snapshot.
+          </p>
+        </div>
+
+        <div class="date">◷ Friday, September 25 · 09:42 AM</div>
+      </section>
+
+      <!-- DASHBOARD -->
+      <section class="dashboard">
+        <!-- HEALTH SCORE -->
+        <article class="card score-card">
+          <div class="card-title">Overall health score</div>
+
+          <div class="score-orbit">
+            <div class="score-number">92<span>/100</span></div>
+          </div>
+
+          <div class="score-status">
+            <strong>● Excellent balance</strong>
+            <small>↑ 4 points compared to yesterday</small>
+          </div>
+
+          <div class="score-footer">
+            <span>Weekly average</span>
+            <b>89.6</b>
+          </div>
+        </article>
+
+        <!-- HEART RATE -->
+        <article class="card vital">
+          <div class="vital-top">
+            <div class="card-title">Heart rate</div>
+            <div class="vital-icon">♥</div>
+          </div>
+
+          <div class="value">68 <span class="unit">BPM</span></div>
+
+          <div class="trend">↘ 3% · Resting</div>
+        </article>
+
+        <!-- SLEEP -->
+        <article class="card vital">
+          <div class="vital-top">
+            <div class="card-title">Sleep quality</div>
+            <div class="vital-icon">☾</div>
+          </div>
+
+          <div class="value">
+            8<span class="unit">h</span> 12<span class="unit">m</span>
+          </div>
+
+          <div class="trend">↑ 12% · Optimal</div>
+        </article>
+
+        <!-- BLOOD OXYGEN -->
+        <article class="card vital">
+          <div class="vital-top">
+            <div class="card-title">Blood oxygen</div>
+            <div class="vital-icon">◉</div>
+          </div>
+
+          <div class="value">98<span class="unit">%</span></div>
+
+          <div class="trend">✓ Normal range</div>
+        </article>
+
+        <!-- ACTIVITY GRAPH -->
+        <article class="card activity">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Daily activity</div>
+              <h2 style="margin-top: 8px; font-family: Space Grotesk">
+                Movement intensity
+              </h2>
+            </div>
+
+            <div class="legend">
+              <span><i class="dot"></i> Active</span>
+              <span><i class="dot cyan"></i> Goal</span>
+            </div>
+          </div>
+
+          <div class="graph">
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+            <div class="bar-group"><div class="bar"></div></div>
+          </div>
+        </article>
+
+        <!-- ACTIVITY RINGS -->
+        <article class="card rings-card">
+          <div class="card-title">Daily targets</div>
+
+          <div class="rings">
+            <div>
+              <div class="ring steps">
+                <span>78%</span>
+              </div>
+              <div class="ring-label">STEPS</div>
+            </div>
+
+            <div>
+              <div class="ring calories">
+                <span>62%</span>
+              </div>
+              <div class="ring-label">CALORIES</div>
+            </div>
+
+            <div>
+              <div class="ring active">
+                <span>86%</span>
+              </div>
+              <div class="ring-label">ACTIVE</div>
+            </div>
+          </div>
+        </article>
+
+        <!-- INSIGHT -->
+        <article class="card insight">
+          <div class="insight-icon">✦</div>
+
+          <div>
+            <div class="card-title">AI health insight</div>
+            <h2>Your recovery looks strong.</h2>
+            <p>
+              Your sleep, resting heart rate and recent activity are trending
+              positively. Your current recovery pattern suggests you're ready
+              for another active day.
+            </p>
+          </div>
+
+          <button onclick="showInsight()">View details →</button>
+        </article>
+      </section>
+
+      <div class="system-status">
+        <span>Last synchronized <strong>just now</strong></span>
+        <span>● All systems operational</span>
+      </div>
+    </main>
+
+    <script>
+      function showInsight() {
+        alert(
+          'Health insight\\n\\n' +
+            'Recovery: Excellent\\n' +
+            'Sleep: Optimal\\n' +
+            'Heart rate: Stable\\n' +
+            'Activity: On track'
+        );
+      }
+    </script>
+  </body>
+</html>
